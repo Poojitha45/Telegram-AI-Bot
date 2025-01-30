@@ -5,33 +5,63 @@ import { Input } from "/components/ui/input"
 import { Label } from "/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "/components/ui/avatar"
 import { Upload } from "lucide-react"
+import { Phone } from "lucide-react"
 
 export default function TelegramChatbot() {
   const [firstName, setFirstName] = useState('')
   const [username, setUsername] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [contactSubmitted, setContactSubmitted] = useState(false)
   const [userQuery, setUserQuery] = useState('')
   const [chatHistory, setChatHistory] = useState<{ message: string, sender: 'user' | 'bot', timestamp: string }[]>([])
   const [file, setFile] = useState<File | null>(null)
   const [fileAnalysis, setFileAnalysis] = useState<string | null>(null)
+  const [fileMetadataSaved, setFileMetadataSaved] = useState(false)
+  const [webSearchQuery, setWebSearchQuery] = useState('')
+  const [webSearchResults, setWebSearchResults] = useState<{ summary: string, links: string[] } | null>(null)
+  const [chatId, setChatId] = useState<string | null>(null)
 
   const handleContactSubmit = () => {
-    setContactSubmitted(true)
+    if (firstName && username) {
+      const timestamp = new Date().toLocaleTimeString()
+      const chatId = `chat_${Date.now()}` // Simulate a chat ID
+      setChatId(chatId)
+
+      // Simulate saving to MongoDB
+      setTimeout(() => {
+        console.log("User registered in MongoDB:", { first_name: firstName, username, chat_id: chatId })
+        setContactSubmitted(true)
+      }, 1000)
+    }
+  }
+
+  const handlePhoneNumberSubmit = () => {
+    if (phoneNumber) {
+      // Simulate saving phone number to MongoDB
+      setTimeout(() => {
+        console.log("Phone number saved in MongoDB:", { chat_id: chatId, phone_number: phoneNumber })
+        alert("Phone number saved successfully!")
+      }, 1000)
+    }
   }
 
   const handleQuerySubmit = () => {
     if (userQuery.trim()) {
       const timestamp = new Date().toLocaleTimeString()
-      setChatHistory([...chatHistory, { message: userQuery, sender: 'user', timestamp }])
+      const userMessage = { message: userQuery, sender: 'user', timestamp }
+      setChatHistory([...chatHistory, userMessage])
       setUserQuery('')
 
-      // Simulate bot response
+      // Simulate bot response using Gemini API
       setTimeout(() => {
         const botResponse = getBotResponse(userQuery)
-        setChatHistory(prevHistory => [
-          ...prevHistory,
-          { message: botResponse, sender: 'bot', timestamp }
-        ])
+        const botMessage = { message: botResponse, sender: 'bot', timestamp }
+        setChatHistory(prevHistory => [...prevHistory, botMessage])
+
+        // Simulate saving to MongoDB
+        setTimeout(() => {
+          console.log("Chat history saved to MongoDB:", [...chatHistory, userMessage, botMessage])
+        }, 1000)
       }, 1000)
     }
   }
@@ -40,8 +70,15 @@ export default function TelegramChatbot() {
     const uploadedFile = event.target.files?.[0]
     if (uploadedFile) {
       setFile(uploadedFile)
-      // Simulate file analysis
-      setFileAnalysis(Analysis of ${uploadedFile.name}: This is a simulated analysis result.)
+      // Simulate file analysis using Gemini API
+      const analysis = simulateFileAnalysis(uploadedFile)
+      setFileAnalysis(analysis)
+
+      // Simulate saving file metadata to MongoDB
+      setTimeout(() => {
+        setFileMetadataSaved(true)
+        console.log("File metadata saved to MongoDB:", { name: uploadedFile.name, size: uploadedFile.size, type: uploadedFile.type, analysis })
+      }, 1000)
     }
   }
 
@@ -51,10 +88,122 @@ export default function TelegramChatbot() {
       return "Hello! How can I assist you today?"
     } else if (lowerCaseQuery.includes('how are you')) {
       return "I'm just a bot, but I'm here and ready to help you!"
-    } else if (lowerCaseQuery.includes('what can you do')) {
-      return "I can answer questions, provide information, and assist with a variety of tasks."
+    } else if (lowerCaseQuery.includes('how have you been')) {
+      return "I'm functioning well, thank you! How about you?"
+    } else if (lowerCaseQuery.includes('great')) {
+      return "Glad to hear that! Is there anything specific you need help with?"
+    } else if (lowerCaseQuery.includes('weather')) {
+      return "The weather today is sunny with a high of 75°F and a low of 60°F."
+    } else if (lowerCaseQuery.includes('news')) {
+      return "The latest news is that the stock market is up today."
+    } else if (lowerCaseQuery.includes('joke')) {
+      return "Sure, here's a joke: Why don't scientists trust atoms? Because they make up everything!"
+    } else if (lowerCaseQuery.includes('file')) {
+      return "You can upload a file for analysis in the section to the right."
+    } else if (lowerCaseQuery.includes('/websearch')) {
+      return "Sure, please enter your search query."
     } else {
       return "I'm not sure how to respond to that, but I'll do my best to help!"
+    }
+  }
+
+  const simulateFileAnalysis = (file: File): string => {
+    const fileName = file.name.toLowerCase()
+    let analysis = `Analysis of ${file.name}: This file is a ${file.type} with a size of ${file.size} bytes. It appears to be a ${file.type.includes('image') ? 'image' : 'document'}.`
+
+    if (file.type.includes('image')) {
+      if (fileName.includes('screenshot')) {
+        analysis += " The image contains a landscape with trees, a river, and a small cabin in the background."
+      } else if (fileName.includes('portrait')) {
+        analysis += " The image is a portrait of a person standing in front of a city skyline. The person is wearing a red jacket and has a confident smile."
+      } else if (fileName.includes('product')) {
+        analysis += " The image is a product photo of a modern smartphone. The smartphone has a sleek design with a large screen and a glass front cover."
+      } else if (fileName.includes('graph')) {
+        analysis += " The image is a graph showing sales data over the past year. The graph includes multiple data points and a trend line indicating an upward trend."
+      } else if (fileName.includes('family')) {
+        analysis += " The image is a family photo with a mother, father, and two children. They are sitting on a picnic blanket in a park, enjoying a sunny day."
+      } else if (fileName.includes('cat')) {
+        analysis += " The image contains a cat sitting on a windowsill. The cat is looking outside with a curious expression."
+      } else if (fileName.includes('dog')) {
+        analysis += " The image contains a dog playing in a field. The dog is chasing a ball and has a joyful expression."
+      } else if (fileName.includes('beach')) {
+        analysis += " The image shows a beautiful beach scene with clear blue water, palm trees, and people relaxing on the sand."
+      } else if (fileName.includes('city')) {
+        analysis += " The image is a panoramic view of a bustling city skyline with tall buildings and busy streets."
+      } else if (fileName.includes('mountain')) {
+        analysis += " The image captures a majestic mountain range with snow-capped peaks and a serene valley below."
+      } else {
+        analysis += " The image contains various objects, including a cat, a bookshelf, and a vase of flowers."
+      }
+    } else if (file.type.includes('application/pdf')) {
+      analysis += " The document contains several pages with text and some charts. It appears to be a financial report with detailed analysis and conclusions."
+    } else if (file.type.includes('application/msword') || file.type.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document')) {
+      analysis += " The document contains a report with detailed analysis and conclusions. It includes sections on market trends, customer feedback, and strategic recommendations."
+    }
+
+    return analysis
+  }
+
+  const handleWebSearchSubmit = () => {
+    if (webSearchQuery.trim()) {
+      const timestamp = new Date().toLocaleTimeString()
+      const userMessage = { message: `/websearch ${webSearchQuery}`, sender: 'user', timestamp }
+      setChatHistory([...chatHistory, userMessage])
+      setWebSearchQuery('')
+
+      // Simulate web search results
+      const results = simulateWebSearch(webSearchQuery)
+      setWebSearchResults(results)
+
+      // Simulate bot response
+      setTimeout(() => {
+        const botResponse = `Here are the search results for "${webSearchQuery}":\n\n${results.summary}\n\nTop Links:\n${results.links.map((link, index) => `${index + 1}. ${link}`).join('\n')}`
+        const botMessage = { message: botResponse, sender: 'bot', timestamp }
+        setChatHistory(prevHistory => [...prevHistory, botMessage])
+
+        // Simulate saving to MongoDB
+        setTimeout(() => {
+          console.log("Chat history saved to MongoDB:", [...chatHistory, userMessage, botMessage])
+        }, 1000)
+      }, 1000)
+    }
+  }
+
+  const simulateWebSearch = (query: string): { summary: string, links: string[] } => {
+    const lowerCaseQuery = query.toLowerCase()
+    if (lowerCaseQuery.includes('weather')) {
+      return {
+        summary: "The weather today is sunny with a high of 75°F and a low of 60°F.",
+        links: [
+          "https://www.accuweather.com/",
+          "https://www.weather.gov/"
+        ]
+      }
+    } else if (lowerCaseQuery.includes('news')) {
+      return {
+        summary: "The latest news is that the stock market is up today.",
+        links: [
+          "https://www.bbc.com/",
+          "https://www.nytimes.com/"
+        ]
+      }
+    } else if (lowerCaseQuery.includes('joke')) {
+      return {
+        summary: "Sure, here's a joke: Why don't scientists trust atoms? Because they make up everything!",
+        links: [
+          "https://www.jokes.com/",
+          "https://www.humor.com/",
+          "https://www.jokes4us.com/"
+        ]
+      }
+    } else {
+      return {
+        summary: "Here are some general search results for your query.",
+        links: [
+          "https://www.bing.com/search?q=" + encodeURIComponent(query),
+          "https://www.duckduckgo.com/?q=" + encodeURIComponent(query)
+        ]
+      }
     }
   }
 
@@ -99,7 +248,24 @@ export default function TelegramChatbot() {
                   <Button onClick={handleContactSubmit}>Contact Request</Button>
                 </>
               ) : (
-                <p className="text-green-500">Contact request submitted!</p>
+                <>
+                  <p className="text-green-500">Contact request submitted!</p>
+                  <div className="mt-4">
+                    <Label htmlFor="phone-number">Phone Number</Label>
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        id="phone-number"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        placeholder="Enter your phone number"
+                        className="mt-2 flex-1"
+                      />
+                      <Button onClick={handlePhoneNumberSubmit}>
+                        <Phone className="mr-2 h-4 w-4" /> Save
+                      </Button>
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -111,8 +277,8 @@ export default function TelegramChatbot() {
             </CardHeader>
             <CardContent className="h-96 overflow-y-auto">
               {chatHistory.map((entry, index) => (
-                <div key={index} className={flex mb-4 ${entry.sender === 'user' ? 'justify-end' : 'justify-start'}}>
-                  <div className={p-2 rounded-lg ${entry.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}}>
+                <div key={index} className={`flex mb-4 ${entry.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`p-2 rounded-lg ${entry.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-black'}`}>
                     <div className="flex items-center">
                       {entry.sender === 'user' ? (
                         <Avatar className="mr-2">
@@ -161,6 +327,7 @@ export default function TelegramChatbot() {
                   type="file"
                   className="hidden"
                   onChange={handleFileUpload}
+                  accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 />
               </div>
               {file && (
@@ -174,6 +341,45 @@ export default function TelegramChatbot() {
                 <div>
                   <p className="font-bold">Analysis Result:</p>
                   <p>{fileAnalysis}</p>
+                </div>
+              )}
+              {fileMetadataSaved && (
+                <div className="mt-4">
+                  <p className="text-green-500">File metadata has been saved to MongoDB.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Web Search */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Web Search</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <Input
+                  value={webSearchQuery}
+                  onChange={(e) => setWebSearchQuery(e.target.value)}
+                  placeholder="Enter search query..."
+                  className="w-full"
+                />
+                <Button onClick={handleWebSearchSubmit} className="mt-2">Search</Button>
+              </div>
+              {webSearchResults && (
+                <div>
+                  <p className="font-bold">Search Summary:</p>
+                  <p>{webSearchResults.summary}</p>
+                  <p className="font-bold mt-4">Top Links:</p>
+                  <ul>
+                    {webSearchResults.links.map((link, index) => (
+                      <li key={index} className="mt-2">
+                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                          {link}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </CardContent>
